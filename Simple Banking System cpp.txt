@@ -1,0 +1,173 @@
+Simple Banking System
+#include <iostream>
+#include <map>
+#include <string>
+#include <iomanip>
+#include <limits>
+
+using namespace std;
+
+class Account {
+private:
+    int accountNumber;
+    string accountType;
+    string ownerName;
+    double balance;
+
+public:
+    // Constructors
+    Account(int accNo = 0, const string& accType = "Undefined", const string& name = "No Name", double initialDeposit = 0.0)
+        : accountNumber(accNo), accountType(accType), ownerName(name), balance(initialDeposit) {}
+
+    // Deposit and withdraw operations
+    bool deposit(double amount) {
+        if (amount <= 0) return false;
+        balance += amount;
+        return true;
+    }
+
+    bool withdraw(double amount) {
+        if (amount <= 0 || amount > balance) return false;
+        balance -= amount;
+        return true;
+    }
+
+    // Display account summary
+    void displaySummary() const {
+        cout << "\n--- Account Summary ---\n"
+             << "Account Number: " << accountNumber << "\n"
+             << "Account Type: " << accountType << "\n"
+             << "Owner: " << ownerName << "\n"
+             << "Balance: $" << fixed << setprecision(2) << balance << "\n";
+    }
+};
+
+class BankingSystem {
+private:
+    map<int, Account> accounts;
+    int nextAccountNumber = 1001;
+
+    // Helper function to get valid user input
+    template<typename T>
+    bool getInput(T& input, const string& prompt) {
+        cout << prompt;
+        if (!(cin >> input)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid input! Please try again.\n";
+            return false;
+        }
+        return true;
+    }
+
+public:
+    // Create a new account
+    void createAccount() {
+        string name, accountType;
+        double initialDeposit;
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear input buffer
+        cout << "Enter your name: ";
+        getline(cin, name);
+
+        cout << "Enter account type (Savings/Current): ";
+        cin >> accountType;
+
+        while (!getInput(initialDeposit, "Enter initial deposit: ") || initialDeposit < 0) {
+            cout << "Initial deposit must be a non-negative number. Try again.\n";
+        }
+
+        accounts[nextAccountNumber] = Account(nextAccountNumber, accountType, name, initialDeposit);
+        cout << "Account created successfully! Your account number is: " << nextAccountNumber++ << "\n";
+    }
+
+    // Deposit money into an account
+    void depositMoney() {
+        int accountNumber;
+        double amount;
+
+        if (!getInput(accountNumber, "Enter account number: ") || accounts.find(accountNumber) == accounts.end()) {
+            cout << "Account not found!\n";
+            return;
+        }
+
+        while (!getInput(amount, "Enter amount to deposit: ") || !accounts[accountNumber].deposit(amount)) {
+            cout << "Deposit amount must be a positive number. Try again.\n";
+        }
+
+        cout << "Successfully deposited $" << fixed << setprecision(2) << amount << "\n";
+    }
+
+    // Withdraw money from an account
+    void withdrawMoney() {
+        int accountNumber;
+        double amount;
+
+        if (!getInput(accountNumber, "Enter account number: ") || accounts.find(accountNumber) == accounts.end()) {
+            cout << "Account not found!\n";
+            return;
+        }
+
+        while (!getInput(amount, "Enter amount to withdraw: ") || !accounts[accountNumber].withdraw(amount)) {
+            cout << "Withdrawal failed. Check if the amount is valid and you have sufficient balance.\n";
+        }
+
+        cout << "Successfully withdrew $" << fixed << setprecision(2) << amount << "\n";
+    }
+
+    // Display account summary
+    void displayAccountSummary() {
+        int accountNumber;
+
+        if (!getInput(accountNumber, "Enter account number: ") || accounts.find(accountNumber) == accounts.end()) {
+            cout << "Account not found!\n";
+            return;
+        }
+
+        accounts[accountNumber].displaySummary();
+    }
+};
+
+int main() {
+    BankingSystem system;
+    int choice;
+
+    do {
+        cout << "\n--- Banking System Menu ---\n"
+             << "1. Create Account\n"
+             << "2. Deposit Money\n"
+             << "3. Withdraw Money\n"
+             << "4. View Account Summary\n"
+             << "5. Exit\n"
+             << "Enter your choice: ";
+
+        if (!(cin >> choice)) {
+            cout << "Invalid choice! Please enter a number.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+
+        switch (choice) {
+        case 1:
+            system.createAccount();
+            break;
+        case 2:
+            system.depositMoney();
+            break;
+        case 3:
+            system.withdrawMoney();
+            break;
+        case 4:
+            system.displayAccountSummary();
+            break;
+        case 5:
+            cout << "Exiting system. Goodbye!\n";
+            break;
+        default:
+            cout << "Invalid choice! Please try again.\n";
+        }
+    } while (choice != 5);
+
+    return 0;
+}
